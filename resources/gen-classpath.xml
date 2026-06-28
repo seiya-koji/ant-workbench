@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Ant Workbench: .classpath generator.
+
+  This file is copied next to the target build file at generation time so that
+  Ant resolves the imported build's basedir-relative properties (e.g. dir.base)
+  correctly. It imports the target build and reuses its <path> (default id
+  "classpath") to emit an Eclipse .classpath whose lib entries are relative to
+  the project, which the Java language server (Red Hat / eclipse.jdt.ls) can
+  resolve.
+
+  Parameters (passed via -D):
+    awb.target.buildfile  absolute path of the build file to import
+    awb.path.id           id of the <path> to convert (default: classpath)
+-->
+<project name="awb-gen-classpath" default="awb.gen-classpath">
+  <import file="${awb.target.buildfile}" />
+
+  <target name="awb.gen-classpath">
+    <!-- Parent of the project dir; lib jars live under it and become "../...". -->
+    <property name="awb.parent" location="${dir.base}/.." />
+    <!-- Output path; overridable via -Dawb.output for non-destructive checks. -->
+    <property name="awb.output" location="${dir.base}/.classpath" />
+
+    <pathconvert property="awb.entries" pathsep="${line.separator}" refid="${awb.path.id}">
+      <mapper type="regexp"
+              from="^${awb.parent}/(.*)$$"
+              to="&#9;&lt;classpathentry kind=&quot;lib&quot; path=&quot;../\1&quot;/&gt;" />
+    </pathconvert>
+
+    <echo file="${awb.output}"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+${awb.entries}
+	<classpathentry kind="output" path="bin"/>
+</classpath>
+]]></echo>
+
+    <echo message="Ant Workbench: wrote ${awb.output}" />
+  </target>
+</project>
