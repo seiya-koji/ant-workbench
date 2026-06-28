@@ -1,0 +1,16 @@
+.github/
+.husky/
+.vscode/
+__mocks__/
+node_modules/
+src/
+tests/
+.gitignore
+.prettierignore
+.prettierrc.json
+commitlint.config.js
+eslint.config.mjs
+tsconfig.json
+tsconfig.test.json
+vitest.config.ts
+*.vsix

@@ -1,0 +1,174 @@
+{
+  "name": "ant-workbench",
+  "displayName": "Ant Workbench",
+  "description": "Browse Ant build files in a sidebar and run their targets, with optional Eclipse .classpath generation for the Java language server.",
+  "version": "0.0.1",
+  "publisher": "seiya-koji",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "icon": "resources/icon-marketplace.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seiya-koji/ant-workbench"
+  },
+  "license": "MIT",
+  "keywords": [
+    "ant",
+    "build",
+    "target",
+    "run",
+    "java",
+    "classpath",
+    "eclipse"
+  ],
+  "categories": [
+    "Other",
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "antWorkbench",
+          "title": "Ant Workbench",
+          "icon": "resources/icon-activitybar.svg"
+        }
+      ]
+    },
+    "views": {
+      "antWorkbench": [
+        {
+          "id": "antWorkbench.builds",
+          "name": "Ant Builds"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "antWorkbench.refresh",
+        "title": "Refresh",
+        "category": "Ant Workbench",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "antWorkbench.setActiveBuildFile",
+        "title": "Set as Active Build File",
+        "category": "Ant Workbench",
+        "icon": "$(check)"
+      },
+      {
+        "command": "antWorkbench.generateClasspath",
+        "title": "Generate .classpath",
+        "category": "Ant Workbench",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "antWorkbench.runTarget",
+        "title": "Run Target",
+        "category": "Ant Workbench",
+        "icon": "$(play)"
+      },
+      {
+        "command": "antWorkbench.toggleAutoGenerate",
+        "title": "Toggle Auto-Generate .classpath",
+        "category": "Ant Workbench",
+        "icon": "$(sync)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "antWorkbench.refresh",
+          "when": "view == antWorkbench.builds",
+          "group": "navigation"
+        },
+        {
+          "command": "antWorkbench.toggleAutoGenerate",
+          "when": "view == antWorkbench.builds",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "antWorkbench.setActiveBuildFile",
+          "when": "view == antWorkbench.builds && viewItem == antBuildFile",
+          "group": "inline@1"
+        },
+        {
+          "command": "antWorkbench.generateClasspath",
+          "when": "view == antWorkbench.builds && viewItem == antBuildFile",
+          "group": "inline@2"
+        },
+        {
+          "command": "antWorkbench.runTarget",
+          "when": "view == antWorkbench.builds && viewItem == antTarget",
+          "group": "inline"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Ant Workbench",
+      "properties": {
+        "antWorkbench.antPath": {
+          "type": "string",
+          "default": "ant",
+          "description": "Path to the Ant executable. Use an absolute path if 'ant' is not on PATH."
+        },
+        "antWorkbench.buildFileGlob": {
+          "type": "string",
+          "default": "**/build*.xml",
+          "description": "Glob used to discover Ant build files. Files whose root element is not <project> are ignored."
+        },
+        "antWorkbench.exclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Glob patterns excluded from build file discovery. When empty, VS Code's files.exclude setting is honored instead."
+        },
+        "antWorkbench.classpathPathId": {
+          "type": "string",
+          "default": "classpath",
+          "description": "The id of the Ant <path> reused to generate .classpath."
+        },
+        "antWorkbench.autoGenerate": {
+          "type": "boolean",
+          "default": false,
+          "description": "Regenerate .classpath automatically when the build file changes."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package --no-dependencies",
+    "prepare": "husky",
+    "test": "vitest run",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.0.2",
+    "@commitlint/config-conventional": "^21.0.2",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.80.0",
+    "@vscode/vsce": "^3.0.0",
+    "eslint": "^10.5.0",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "prettier": "^3.8.4",
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.61.1",
+    "vitest": "^4.1.9"
+  }
+}
