@@ -13,7 +13,9 @@ Ant Workbench gives you a unified sidebar for all Ant build files in your worksp
 
 ### When `.classpath` generation helps
 
-If your project uses the [Language Support for Java](https://marketplace.visualstudio.com/items?itemName=redhat.java) extension, you may see red squiggles even though the project builds fine with Ant. This often happens with projects that carry a stale or incompatible `.classpath` — for example, projects exported from Eclipse that contain server-runtime containers, workspace-relative variables, or outdated project references that VS Code cannot resolve.
+If your project uses the [Language Support for Java](https://marketplace.visualstudio.com/items?itemName=redhat.java) extension, you may see red squiggles even though the project builds fine with Ant.
+
+This often happens with projects that carry a stale or incompatible `.classpath` — for example, projects exported from Eclipse that contain server-runtime containers, workspace-relative variables, or outdated project references that VS Code cannot resolve.
 
 Ant Workbench treats the **build file as the source of truth**. It reuses the build's own `<path>` definition (including its `include`/`exclude` rules) to emit a `.classpath` whose library entries are project-relative, so the language server resolves the exact same classpath that Ant compiles with.
 
@@ -46,16 +48,57 @@ Install it from the Visual Studio Code Marketplace.
 
 ## Settings
 
-| Setting                        | Default         | Description                                                      |
-| ------------------------------ | --------------- | ---------------------------------------------------------------- |
-| `antWorkbench.antPath`         | `ant`           | Path to the Ant executable.                                      |
-| `antWorkbench.buildFileGlob`   | `**/build*.xml` | Glob used to discover build files (non-`<project>` are ignored). |
-| `antWorkbench.exclude`         | `[]`            | Globs excluded from discovery. Empty honors `files.exclude`.     |
-| `antWorkbench.classpathPathId` | `classpath`     | Id of the `<path>` reused to generate `.classpath`.              |
-| `antWorkbench.autoGenerate`    | `false`         | Regenerate `.classpath` when the build file changes.             |
+| Setting                             | Default         | Description                                                        |
+| ----------------------------------- | --------------- | ------------------------------------------------------------------ |
+| `antWorkbench.antPath`              | `ant`           | Path to the Ant executable.                                        |
+| `antWorkbench.buildFileGlob`        | `**/build*.xml` | Glob used to discover build files (non-`<project>` are ignored).   |
+| `antWorkbench.exclude`              | `[]`            | Globs excluded from discovery. Empty honors `files.exclude`.       |
+| `antWorkbench.classpathPathId`      | `classpath`     | Id of the `<path>` reused to generate `.classpath`.                |
+| `antWorkbench.autoGenerate`         | `false`         | Regenerate `.classpath` when the build file changes.               |
+| `antWorkbench.additionalClasspaths` | `[]`            | Additional `.classpath` targets. Add via sidebar or edit manually. |
 
-The last two settings only apply when using the `.classpath` generation feature.
+The last three settings only apply when using the `.classpath` generation feature.
+
+### Generating `.classpath` for additional projects
+
+If a build file configures multiple Eclipse projects — for example a source project and a
+companion test project — you can generate a `.classpath` for each.
+
+Use the **Add Classpath Target** inline button in the sidebar:
+
+1. Click the **$(add) Add Classpath Target** icon on the build file row.
+2. Pick the Ant `<path>` id from the QuickPick (paths other than the primary are listed automatically).
+3. Select the output directory from the workspace directory list.
+4. The entry is saved to `antWorkbench.additionalClasspaths` in `.vscode/settings.json`.
+
+The next **Generate .classpath** run also generates the additional file.  
+You can also edit the setting directly:
+
+```json
+"antWorkbench.additionalClasspaths": [
+  {
+    "pathId": "test-classpath",
+    "outputDir": "MyProject-test",
+    "projectDeps": ["MyProject"]
+  }
+]
+```
+
+| Field         | Required | Description                                                              |
+| ------------- | -------- | ------------------------------------------------------------------------ |
+| `pathId`      | yes      | Id of the Ant `<path>` whose entries become library entries.             |
+| `outputDir`   | yes      | Where to write `.classpath`, relative to the workspace folder.           |
+| `projectDeps` | no       | Eclipse project names added as `<classpathentry kind="src">` references. |
+
+> [!NOTE]
+> The added project must be at the same directory depth as the primary project (sibling)
+> for the generated relative paths to resolve correctly.
 
 ## How `.classpath` generation works (optional)
 
-This feature is useful when using the Java language server alongside Ant. A small generator script is placed next to the selected build file, imports it, and converts the build's `<path>` to project-relative `<classpathentry>` lib entries. Because the generator runs from the build file's directory, the build's own basedir-relative properties resolve correctly. The generated `.classpath` is a normal Eclipse file; consider adding it to `.gitignore` since it is produced locally per machine.
+This feature is useful when using the Java language server alongside Ant.
+
+A small generator script is placed next to the selected build file, imports it, and converts the build's `<path>` to project-relative `<classpathentry>` lib entries.
+Because the generator runs from the build file's directory, the build's own basedir-relative properties resolve correctly.
+
+The generated `.classpath` is a normal Eclipse file; consider adding it to `.gitignore` since it is produced locally per machine.
