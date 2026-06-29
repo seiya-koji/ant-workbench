@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
+import * as path from 'node:path';
 import { getAntPath, runAnt } from './antProcess';
 
 /** Run a single Ant target from the given build file. */

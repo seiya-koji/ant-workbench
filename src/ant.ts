@@ -9,7 +9,7 @@ export interface AntTarget {
 }
 
 function stripComments(xml: string): string {
-  return xml.replace(/<!--[\s\S]*?-->/g, '');
+  return xml.replaceAll(/<!--[\s\S]*?-->/g, '');
 }
 
 /** True when the document's root-level markup contains an Ant <project> element. */
@@ -17,22 +17,25 @@ export function isAntBuildFile(xml: string): boolean {
   return /<project[\s>]/.test(stripComments(xml));
 }
 
+/** Extract unique <path id="..."> ids in document order. */
+export function parsePathIds(xml: string): string[] {
+  const content = stripComments(xml);
+  const ids = [...content.matchAll(/<path\b[^>]*\bid\s*=\s*"([^"]*)"/g)].map((m) => m[1]);
+  return [...new Set(ids)];
+}
+
 /** Extract unique <target> entries (first occurrence wins) with optional descriptions. */
 export function parseTargets(xml: string): AntTarget[] {
   const content = stripComments(xml);
-  const targets: AntTarget[] = [];
   const seen = new Set<string>();
-  const tagRe = /<target\b([^>]*)>/g;
-  let match: RegExpExecArray | null;
-  while ((match = tagRe.exec(content)) !== null) {
-    const attrs = match[1];
+  return [...content.matchAll(/<target\b([^>]*)>/g)].flatMap((m) => {
+    const attrs = m[1];
     const name = /\bname\s*=\s*"([^"]*)"/.exec(attrs)?.[1];
     if (!name || seen.has(name)) {
-      continue;
+      return [];
     }
     seen.add(name);
     const description = /\bdescription\s*=\s*"([^"]*)"/.exec(attrs)?.[1];
-    targets.push({ name, description });
-  }
-  return targets;
+    return [{ name, description }];
+  });
 }

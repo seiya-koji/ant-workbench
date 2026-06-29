@@ -78,6 +78,12 @@
         "title": "Toggle Auto-Generate .classpath",
         "category": "Ant Workbench",
         "icon": "$(sync)"
+      },
+      {
+        "command": "antWorkbench.addClasspathTarget",
+        "title": "Add Classpath Target",
+        "category": "Ant Workbench",
+        "icon": "$(add)"
       }
     ],
     "menus": {
@@ -103,6 +109,11 @@
           "command": "antWorkbench.generateClasspath",
           "when": "view == antWorkbench.builds && viewItem == antBuildFile",
           "group": "inline@2"
+        },
+        {
+          "command": "antWorkbench.addClasspathTarget",
+          "when": "view == antWorkbench.builds && viewItem == antBuildFile",
+          "group": "inline@3"
         },
         {
           "command": "antWorkbench.runTarget",
@@ -141,6 +152,36 @@
           "type": "boolean",
           "default": false,
           "description": "Regenerate .classpath automatically when the build file changes."
+        },
+        "antWorkbench.additionalClasspaths": {
+          "type": "array",
+          "default": [],
+          "description": "Additional .classpath files to generate alongside the primary one. Add entries via the sidebar button or edit this setting manually.",
+          "items": {
+            "type": "object",
+            "required": [
+              "pathId",
+              "outputDir"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "pathId": {
+                "type": "string",
+                "description": "The id of the Ant <path> whose entries are written as lib classpath entries."
+              },
+              "outputDir": {
+                "type": "string",
+                "description": "Directory where .classpath is written, relative to the workspace folder."
+              },
+              "projectDeps": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Eclipse project names added as <classpathentry kind='src' path='/Name'/>."
+              }
+            }
+          }
         }
       }
     }
@@ -160,7 +201,7 @@
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.0.2",
     "@eslint/js": "^10.0.1",
-    "@types/node": "^20.0.0",
+    "@types/node": "^20.19.43",
     "@types/vscode": "^1.80.0",
     "@vscode/vsce": "^3.0.0",
     "eslint": "^10.5.0",

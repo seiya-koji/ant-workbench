@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs/promises';
+import * as path from 'node:path';
+import * as fs from 'node:fs/promises';
 import { getAntPath, runAnt } from './antProcess';
 
 const GENERATOR_TEMPLATE = path.join('resources', 'gen-classpath.xml');
@@ -50,6 +50,64 @@ export async function generateClasspath(
     vscode.window.showInformationMessage(
       `Ant Workbench: generated ${vscode.workspace.asRelativePath(classpathUri)}`
     );
+
+    const additionals = config.get<
+      Array<{ pathId: string; outputDir: string; projectDeps?: string[] }>
+    >('additionalClasspaths', []);
+    const wsRoot = vscode.workspace.workspaceFolders?.[0].uri.fsPath ?? '';
+
+    for (const item of additionals) {
+      const absOutputDir = path.isAbsolute(item.outputDir)
+        ? item.outputDir
+        : path.join(wsRoot, item.outputDir);
+
+      try {
+        await fs.stat(absOutputDir);
+      } catch {
+        vscode.window.showWarningMessage(
+          `Ant Workbench: output dir not found for pathId "${item.pathId}" – skipping.`
+        );
+        continue;
+      }
+
+      const extraClasspath = path.join(absOutputDir, '.classpath');
+      const extraCode = await runAnt(output, {
+        antPath: getAntPath(),
+        cwd: buildDir,
+        args: [
+          '-f',
+          TEMP_GENERATOR_NAME,
+          `-Dawb.target.buildfile=${buildFile.fsPath}`,
+          `-Dawb.path.id=${item.pathId}`,
+          `-Dawb.output=${extraClasspath}`,
+          'awb.gen-classpath',
+        ],
+      });
+
+      if (extraCode !== 0) {
+        vscode.window.showErrorMessage(
+          `Ant Workbench: failed to generate .classpath for pathId "${item.pathId}".`
+        );
+        continue;
+      }
+
+      if (item.projectDeps && item.projectDeps.length > 0) {
+        let content = await fs.readFile(extraClasspath, 'utf8');
+        const entries = item.projectDeps
+          .map((p) => `\t<classpathentry kind="src" path="/${p}"/>`)
+          .join('\n');
+        const idx = content.lastIndexOf('</classpath>');
+        if (idx !== -1) {
+          content = content.slice(0, idx) + entries + '\n</classpath>';
+          await fs.writeFile(extraClasspath, content, 'utf8');
+        }
+      }
+
+      await reloadJavaProject(vscode.Uri.file(extraClasspath));
+      vscode.window.showInformationMessage(
+        `Ant Workbench: generated ${vscode.workspace.asRelativePath(extraClasspath)}`
+      );
+    }
   } finally {
     await fs.rm(tempGenerator, { force: true });
   }
