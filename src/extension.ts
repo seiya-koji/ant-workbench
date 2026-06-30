@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { isAntBuildFile, parsePathIds } from './ant';
 import { AntBuildProvider, BuildFileItem, TargetItem } from './antBuildProvider';
 import { generateClasspath } from './classpathGenerator';
-import { runTarget } from './antRunner';
+import { isRunning, runTarget, stopTarget } from './antRunner';
 
 const AUTO_GENERATE_DEBOUNCE_MS = 500;
 const ACTIVE_BUILD_FILE_KEY = 'antWorkbench.activeBuildFile';
@@ -13,11 +13,23 @@ export function activate(context: vscode.ExtensionContext): void {
   const provider = new AntBuildProvider();
   provider.setActiveBuildFile(context.workspaceState.get<string>(ACTIVE_BUILD_FILE_KEY));
 
+  const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
+  statusBar.text = '$(stop-circle) Stop Ant';
+  statusBar.command = 'antWorkbench.stopTarget';
+  statusBar.tooltip = 'Stop the running Ant target';
+  statusBar.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
+
   context.subscriptions.push(
     output,
+    statusBar,
     provider,
     vscode.window.registerTreeDataProvider('antWorkbench.builds', provider),
     vscode.commands.registerCommand('antWorkbench.refresh', () => provider.refresh()),
+    vscode.commands.registerCommand('antWorkbench.stopTarget', () => {
+      if (isRunning()) {
+        stopTarget();
+      }
+    }),
     vscode.commands.registerCommand(
       'antWorkbench.setActiveBuildFile',
       async (node?: BuildFileItem) => {
@@ -44,7 +56,12 @@ export function activate(context: vscode.ExtensionContext): void {
     ),
     vscode.commands.registerCommand('antWorkbench.runTarget', async (node?: TargetItem) => {
       if (node) {
-        await runTarget(output, node.buildFile, node.target);
+        statusBar.show();
+        try {
+          await runTarget(output, node.buildFile, node.target);
+        } finally {
+          statusBar.hide();
+        }
       }
     }),
     vscode.commands.registerCommand(

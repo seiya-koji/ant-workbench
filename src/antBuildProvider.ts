@@ -9,7 +9,9 @@ export class BuildFileItem extends vscode.TreeItem {
     super(vscode.workspace.asRelativePath(uri), vscode.TreeItemCollapsibleState.Collapsed);
     this.contextValue = 'antBuildFile';
     this.resourceUri = uri;
-    this.iconPath = new vscode.ThemeIcon(isActive ? 'pass-filled' : 'file-code');
+    this.iconPath = isActive
+      ? new vscode.ThemeIcon('pass-filled', new vscode.ThemeColor('charts.green'))
+      : new vscode.ThemeIcon('file-code');
     this.description = isActive ? 'active' : undefined;
     this.tooltip = isActive ? `${uri.fsPath} (active)` : uri.fsPath;
     this.command = { command: 'vscode.open', title: 'Open File', arguments: [uri] };
@@ -28,7 +30,9 @@ export class TargetItem extends vscode.TreeItem {
     this.contextValue = 'antTarget';
     this.description = description;
     this.tooltip = isDefault ? `(default) ${description ?? ''}`.trim() : description;
-    this.iconPath = new vscode.ThemeIcon(isDefault ? 'star-full' : 'symbol-method');
+    this.iconPath = isDefault
+      ? new vscode.ThemeIcon('star-full', new vscode.ThemeColor('charts.green'))
+      : new vscode.ThemeIcon('symbol-method');
     this.command = {
       command: 'vscode.open',
       title: 'Go to definition',

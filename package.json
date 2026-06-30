@@ -74,6 +74,12 @@
         "icon": "$(play)"
       },
       {
+        "command": "antWorkbench.stopTarget",
+        "title": "Stop Target",
+        "category": "Ant Workbench",
+        "icon": "$(stop-circle)"
+      },
+      {
         "command": "antWorkbench.toggleAutoGenerate",
         "title": "Toggle Auto-Generate .classpath",
         "category": "Ant Workbench",

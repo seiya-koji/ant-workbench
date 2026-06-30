@@ -5,6 +5,7 @@ export interface RunAntOptions {
   antPath: string;
   args: string[];
   cwd: string;
+  signal?: AbortSignal;
 }
 
 /**
@@ -16,11 +17,15 @@ export function runAnt(output: vscode.OutputChannel, opts: RunAntOptions): Promi
     output.show(true);
     output.appendLine(`> ${opts.antPath} ${opts.args.join(' ')}  (cwd: ${opts.cwd})`);
 
-    const child = spawn(opts.antPath, opts.args, { cwd: opts.cwd });
+    const child = spawn(opts.antPath, opts.args, { cwd: opts.cwd, signal: opts.signal });
     child.stdout.on('data', (chunk) => output.append(chunk.toString()));
     child.stderr.on('data', (chunk) => output.append(chunk.toString()));
     child.on('error', (err) => {
-      output.appendLine(`\n[failed to start ant: ${err.message}]`);
+      if (err.name === 'AbortError') {
+        output.appendLine('\n[ant stopped]');
+      } else {
+        output.appendLine(`\n[failed to start ant: ${err.message}]`);
+      }
       resolve(-1);
     });
     child.on('close', (code) => {
