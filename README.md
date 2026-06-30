@@ -23,6 +23,9 @@ Ant Workbench treats the **build file as the source of truth**. It reuses the bu
 
 - **Sidebar tree** — discovers Ant build files in the workspace and lists their targets.
 - **Run target** — runs any target with Ant and streams output to an Output channel.
+- **Stop target** — a red status bar button appears while a target is running; click it to abort.
+- **Jump to definition** — click a target name to open the build file at the matching `<target>` line.
+- **Default target highlight** — the target named in `<project default="...">` is marked with a star icon.
 - **Active build file** — when a folder holds more than one build file (e.g. `build.xml` and `build-app.xml`), mark one as active. Generation without an explicit target and auto-generate use the active file.
 - **Generate .classpath** _(optional)_ — produces an Eclipse `.classpath` from a build file's `<path>` (default id `classpath`) and reloads the Java project configuration.
 - **Auto-generate** _(optional)_ — optionally regenerates `.classpath` when the build file changes.
@@ -42,9 +45,10 @@ Install it from the Visual Studio Code Marketplace.
 
 1. Open the **Ant Workbench** view from the Activity Bar.
 2. If a folder has multiple build files, click **Set as Active** on the one you use. The active file is marked in the tree.
-3. Expand a build file to see its targets.
-4. Click **Run** on a target to execute it.
-5. _(Optional)_ Use the inline **Generate .classpath** action on a build file to update Java language server resolution.
+3. Expand a build file to see its targets. The default target is marked with a star icon.
+4. Click a target name to jump to its definition in the build file.
+5. Click the inline **Run** button on a target to execute it. A red **Stop Ant** button appears in the status bar while it runs.
+6. _(Optional)_ Use the inline **Generate .classpath** action on a build file to update Java language server resolution.
 
 ## Settings
 
