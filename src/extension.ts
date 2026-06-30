@@ -77,7 +77,7 @@ export function activate(context: vscode.ExtensionContext): void {
           return;
         }
 
-        const wsFolder = vscode.workspace.workspaceFolders?.[0];
+        const wsFolder = vscode.workspace.getWorkspaceFolder(uri);
         if (!wsFolder) {
           vscode.window.showWarningMessage('Ant Workbench: no workspace folder open.');
           return;
