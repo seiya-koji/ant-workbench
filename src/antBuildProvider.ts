@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { isAntBuildFile, parseTargets } from './ant';
+import { isAntBuildFile, parseDefaultTarget, parseTargets } from './ant';
 
 export class BuildFileItem extends vscode.TreeItem {
   constructor(
@@ -20,13 +20,14 @@ export class TargetItem extends vscode.TreeItem {
   constructor(
     public readonly buildFile: vscode.Uri,
     public readonly target: string,
-    description?: string
+    description?: string,
+    public readonly isDefault = false
   ) {
     super(target, vscode.TreeItemCollapsibleState.None);
     this.contextValue = 'antTarget';
     this.description = description;
-    this.tooltip = description;
-    this.iconPath = new vscode.ThemeIcon('symbol-method');
+    this.tooltip = isDefault ? `(default) ${description ?? ''}`.trim() : description;
+    this.iconPath = new vscode.ThemeIcon(isDefault ? 'star-full' : 'symbol-method');
   }
 }
 
@@ -92,7 +93,10 @@ export class AntBuildProvider implements vscode.TreeDataProvider<AntNode>, vscod
 
   private async findTargets(uri: vscode.Uri): Promise<TargetItem[]> {
     const xml = await this.readText(uri);
-    return parseTargets(xml).map((t) => new TargetItem(uri, t.name, t.description));
+    const defaultTarget = parseDefaultTarget(xml);
+    return parseTargets(xml).map(
+      (t) => new TargetItem(uri, t.name, t.description, t.name === defaultTarget)
+    );
   }
 
   private async isAntBuild(uri: vscode.Uri): Promise<boolean> {

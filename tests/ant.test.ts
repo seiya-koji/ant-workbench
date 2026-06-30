@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isAntBuildFile, parseTargets, parsePathIds } from '../src/ant';
+import { isAntBuildFile, parseDefaultTarget, parseTargets, parsePathIds } from '../src/ant';
 
 describe('isAntBuildFile', () => {
   it('detects an Ant project root', () => {
@@ -14,6 +14,22 @@ describe('isAntBuildFile', () => {
 
   it('ignores <project> mentioned only inside comments', () => {
     expect(isAntBuildFile('<!-- <project> in a comment -->\n<beans/>')).toBe(false);
+  });
+});
+
+describe('parseDefaultTarget', () => {
+  it('returns the default attribute value', () => {
+    expect(parseDefaultTarget('<project name="x" default="compile">')).toBe('compile');
+  });
+
+  it('returns undefined when default is absent', () => {
+    expect(parseDefaultTarget('<project name="x">')).toBeUndefined();
+  });
+
+  it('ignores default inside comments', () => {
+    expect(
+      parseDefaultTarget('<!-- <project default="ghost"> --><project name="x">')
+    ).toBeUndefined();
   });
 });
 

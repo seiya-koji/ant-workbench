@@ -24,6 +24,12 @@ export function parsePathIds(xml: string): string[] {
   return [...new Set(ids)];
 }
 
+/** Return the `default` attribute of the root `<project>` element, if present. */
+export function parseDefaultTarget(xml: string): string | undefined {
+  const content = stripComments(xml);
+  return /<project\b[^>]*\bdefault\s*=\s*"([^"]*)"/.exec(content)?.[1];
+}
+
 /** Extract unique <target> entries (first occurrence wins) with optional descriptions. */
 export function parseTargets(xml: string): AntTarget[] {
   const content = stripComments(xml);
