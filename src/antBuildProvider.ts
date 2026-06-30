@@ -21,13 +21,19 @@ export class TargetItem extends vscode.TreeItem {
     public readonly buildFile: vscode.Uri,
     public readonly target: string,
     description?: string,
-    public readonly isDefault = false
+    public readonly isDefault = false,
+    line = 0
   ) {
     super(target, vscode.TreeItemCollapsibleState.None);
     this.contextValue = 'antTarget';
     this.description = description;
     this.tooltip = isDefault ? `(default) ${description ?? ''}`.trim() : description;
     this.iconPath = new vscode.ThemeIcon(isDefault ? 'star-full' : 'symbol-method');
+    this.command = {
+      command: 'vscode.open',
+      title: 'Go to definition',
+      arguments: [buildFile, { selection: new vscode.Range(line, 0, line, 0) }],
+    };
   }
 }
 
@@ -95,7 +101,7 @@ export class AntBuildProvider implements vscode.TreeDataProvider<AntNode>, vscod
     const xml = await this.readText(uri);
     const defaultTarget = parseDefaultTarget(xml);
     return parseTargets(xml).map(
-      (t) => new TargetItem(uri, t.name, t.description, t.name === defaultTarget)
+      (t) => new TargetItem(uri, t.name, t.description, t.name === defaultTarget, t.line)
     );
   }
 

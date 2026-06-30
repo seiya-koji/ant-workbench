@@ -34,15 +34,15 @@ describe('parseDefaultTarget', () => {
 });
 
 describe('parseTargets', () => {
-  it('extracts target names and descriptions', () => {
+  it('extracts target names, descriptions, and line numbers', () => {
     const xml = `
       <project name="x" default="create_jar">
         <target name="compile" depends="init">...</target>
         <target name="create_jar" description="Build the jar">...</target>
       </project>`;
     expect(parseTargets(xml)).toEqual([
-      { name: 'compile', description: undefined },
-      { name: 'create_jar', description: 'Build the jar' },
+      { name: 'compile', description: undefined, line: 2 },
+      { name: 'create_jar', description: 'Build the jar', line: 3 },
     ]);
   });
 
@@ -52,12 +52,12 @@ describe('parseTargets', () => {
         <target name="a" description="first">...</target>
         <target name="a" description="second">...</target>
       </project>`;
-    expect(parseTargets(xml)).toEqual([{ name: 'a', description: 'first' }]);
+    expect(parseTargets(xml)).toEqual([{ name: 'a', description: 'first', line: 2 }]);
   });
 
   it('skips targets defined only inside comments', () => {
     const xml = `<project><!-- <target name="ghost"/> --><target name="real">x</target></project>`;
-    expect(parseTargets(xml)).toEqual([{ name: 'real', description: undefined }]);
+    expect(parseTargets(xml)).toEqual([{ name: 'real', description: undefined, line: 0 }]);
   });
 });
 

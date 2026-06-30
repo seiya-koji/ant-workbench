@@ -6,10 +6,13 @@
 export interface AntTarget {
   name: string;
   description?: string;
+  line: number;
 }
 
 function stripComments(xml: string): string {
-  return xml.replaceAll(/<!--[\s\S]*?-->/g, '');
+  // Replace comment content with spaces, preserving newlines so character
+  // offsets (and thus line numbers) stay correct after stripping.
+  return xml.replaceAll(/<!--[\s\S]*?-->/g, (match) => match.replace(/[^\n]/g, ' '));
 }
 
 /** True when the document's root-level markup contains an Ant <project> element. */
@@ -42,6 +45,7 @@ export function parseTargets(xml: string): AntTarget[] {
     }
     seen.add(name);
     const description = /\bdescription\s*=\s*"([^"]*)"/.exec(attrs)?.[1];
-    return [{ name, description }];
+    const line = content.slice(0, m.index).split('\n').length - 1;
+    return [{ name, description, line }];
   });
 }
