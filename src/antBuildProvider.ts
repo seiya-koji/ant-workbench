@@ -12,6 +12,7 @@ export class BuildFileItem extends vscode.TreeItem {
     this.iconPath = new vscode.ThemeIcon(isActive ? 'pass-filled' : 'file-code');
     this.description = isActive ? 'active' : undefined;
     this.tooltip = isActive ? `${uri.fsPath} (active)` : uri.fsPath;
+    this.command = { command: 'vscode.open', title: 'Open File', arguments: [uri] };
   }
 }
 
