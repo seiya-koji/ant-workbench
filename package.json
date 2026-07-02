@@ -2,7 +2,7 @@
   "name": "ant-workbench",
   "displayName": "Ant Workbench",
   "description": "Browse Ant build files in a sidebar and run their targets, with optional Eclipse .classpath generation for the Java language server.",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "publisher": "seiya-koji",
   "engines": {
     "vscode": "^1.80.0"

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/seiya-koji/ant-workbench/compare/v1.2.0...v1.3.0) (2026-07-02)
+
+
+### Features
+
+* **classpathGenerator:** generate .project alongside .classpath ([#5](https://github.com/seiya-koji/ant-workbench/issues/5)) ([5c42964](https://github.com/seiya-koji/ant-workbench/commit/5c42964a4b5395a647001f0769d8f86b2d1db5f7))
+
 ## [1.2.0](https://github.com/seiya-koji/ant-workbench/compare/v1.1.0...v1.2.0) (2026-06-30)
 
 
