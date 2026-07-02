@@ -44,7 +44,8 @@
       "antWorkbench": [
         {
           "id": "antWorkbench.builds",
-          "name": "Ant Builds"
+          "name": "Ant Builds",
+          "icon": "resources/icon-activitybar.svg"
         }
       ]
     },
@@ -194,8 +195,8 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
+    "compile": "tsc -p ./tsconfig.build.json",
+    "watch": "tsc -watch -p ./tsconfig.build.json",
     "package": "vsce package --no-dependencies",
     "prepare": "husky",
     "test": "vitest run",
