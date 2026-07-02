@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="MyApp" default="run">
+  <description>Sample build file for exercising Ant Workbench</description>
+
+  <!--
+    Don't set the project's basedir attribute: .classpath generation loads this file via
+    <import>, and Ant ignores an imported project's basedir attribute in favor of the
+    importing project's (the temporary generator, placed in the same directory as this
+    file). So dir.base is always defined explicitly as the parent of basedir.
+  -->
+  <property name="dir.base" location="${basedir}/.." />
+  <property name="src.dir" location="${dir.base}/src" />
+  <!-- lib lives inside MyApp (not at the workspace root) on purpose: VS Code's Language
+       Support for Java auto-references a workspace-root lib/**/*.jar by default, which
+       would resolve Slogan even without a generated .classpath and defeat the point of
+       this sample. Nesting it here keeps that resolution genuinely dependent on
+       Generate .classpath. -->
+  <property name="lib.dir" location="${dir.base}/lib" />
+  <property name="build.dir" location="${dir.base}/bin" />
+  <property name="dist.dir" location="${dir.base}/dist" />
+
+  <path id="classpath">
+    <fileset dir="${lib.dir}" includes="*.jar" />
+  </path>
+
+  <path id="test-classpath">
+    <path refid="classpath" />
+    <fileset dir="${lib.dir}/test" includes="*.jar" />
+  </path>
+
+  <target name="clean" description="Remove build output">
+    <delete dir="${build.dir}" />
+    <delete dir="${dist.dir}" />
+  </target>
+
+  <target name="compile" description="Compile the Java sources">
+    <mkdir dir="${build.dir}" />
+    <javac srcdir="${src.dir}" destdir="${build.dir}" classpathref="classpath" includeantruntime="false" />
+  </target>
+
+  <target name="run" depends="compile" description="Run the sample app">
+    <java classname="com.example.myapp.App" fork="true">
+      <classpath>
+        <path refid="classpath" />
+        <pathelement location="${build.dir}" />
+      </classpath>
+    </java>
+  </target>
+
+  <target name="jar" depends="compile" description="Build an executable jar">
+    <mkdir dir="${dist.dir}" />
+    <jar destfile="${dist.dir}/myapp.jar" basedir="${build.dir}">
+      <manifest>
+        <attribute name="Main-Class" value="com.example.myapp.App" />
+      </manifest>
+    </jar>
+  </target>
+</project>

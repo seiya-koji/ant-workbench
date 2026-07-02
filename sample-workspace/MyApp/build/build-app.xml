@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="MyApp-app" default="package">
+  <description>
+    Second build file, used to check the multi-buildfile listing and Active Build File
+    switching. Imports build.xml and reuses it, adding only a package target that zips
+    up the distribution. No basedir attribute (same reason as build.xml: both files live
+    in the same directory, so the default basedir already matches).
+  </description>
+
+  <import file="build.xml" />
+
+  <target name="package" depends="jar" description="Build a distributable zip">
+    <zip destfile="${dist.dir}/myapp-dist.zip" basedir="${dist.dir}" includes="myapp.jar" />
+  </target>
+</project>
