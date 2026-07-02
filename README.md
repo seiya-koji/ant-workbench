@@ -27,7 +27,7 @@ Ant Workbench treats the **build file as the source of truth**. It reuses the bu
 - **Jump to definition** — click a target name to open the build file at the matching `<target>` line.
 - **Default target highlight** — the target named in `<project default="...">` is marked with a star icon.
 - **Active build file** — when a folder holds more than one build file (e.g. `build.xml` and `build-app.xml`), mark one as active. Generation without an explicit target and auto-generate use the active file.
-- **Generate .classpath** _(optional)_ — produces an Eclipse `.classpath` from a build file's `<path>` (default id `classpath`) and reloads the Java project configuration.
+- **Generate .classpath** _(optional)_ — produces an Eclipse `.classpath` from a build file's `<path>` (default id `classpath`), creates a minimal `.project` alongside it if one does not already exist, and reloads the Java project configuration.
 - **Auto-generate** _(optional)_ — optionally regenerates `.classpath` when the build file changes.
 
 ## Requirements
@@ -105,4 +105,8 @@ This feature is useful when using the Java language server alongside Ant.
 A small generator script is placed next to the selected build file, imports it, and converts the build's `<path>` to project-relative `<classpathentry>` lib entries.
 Because the generator runs from the build file's directory, the build's own basedir-relative properties resolve correctly.
 
-The generated `.classpath` is a normal Eclipse file; consider adding it to `.gitignore` since it is produced locally per machine.
+Alongside `.classpath`, a minimal `.project` (with `javanature` and `javabuilder`) is written in the same directory if one does not already exist.
+Eclipse JDT LS treats a folder as a Java project only when `.project` is present; a `.classpath` on its own is silently ignored.
+An existing `.project` is left untouched so any content managed by the language server (e.g. `filteredResources`) is preserved.
+
+Both generated files are normal Eclipse project files; consider adding them to `.gitignore` since they are produced locally per machine.
