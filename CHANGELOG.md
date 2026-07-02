@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0](https://github.com/seiya-koji/ant-workbench/compare/v1.3.0...v1.4.0) (2026-07-02)
+
+
+### Features
+
+* add F5 debug sample workspace, fix Windows Ant execution bugs ([#9](https://github.com/seiya-koji/ant-workbench/issues/9)) ([03d0084](https://github.com/seiya-koji/ant-workbench/commit/03d0084f3561e2ba80fb01d3b3cb64db0c8d0a65))
+* **antBuildProvider:** show welcome message when no build files are found ([#7](https://github.com/seiya-koji/ant-workbench/issues/7)) ([599aced](https://github.com/seiya-koji/ant-workbench/commit/599aced83bb19406d830be0fa92d995ba91e6838))
+
 ## [1.3.0](https://github.com/seiya-koji/ant-workbench/compare/v1.2.0...v1.3.0) (2026-07-02)
 
 
