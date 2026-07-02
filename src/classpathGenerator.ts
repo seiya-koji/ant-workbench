@@ -140,7 +140,7 @@ async function generateAdditionalClasspath(
  * left untouched so any language-server-managed content (e.g. filteredResources)
  * is preserved.
  */
-async function ensureProjectFile(projectDir: string): Promise<boolean> {
+export async function ensureProjectFile(projectDir: string): Promise<boolean> {
   const projectFile = path.join(projectDir, '.project');
   try {
     await fs.stat(projectFile);
@@ -173,7 +173,7 @@ async function ensureProjectFile(projectDir: string): Promise<boolean> {
   return true;
 }
 
-function escapeXml(value: string): string {
+export function escapeXml(value: string): string {
   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
 
