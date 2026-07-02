@@ -13,6 +13,23 @@
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "label": "clean-sample-workspace",
+      "type": "shell",
+      "command": "node",
+      "args": ["scripts/clean-sample-workspace.js"],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "prepare-debug",
+      "dependsOn": ["clean-sample-workspace", "npm: watch"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
     }
   ]
 }

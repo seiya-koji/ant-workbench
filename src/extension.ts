@@ -1,5 +1,11 @@
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import {
+  AdditionalClasspath,
+  buildAdditionalClasspathEntry,
+  formatAddClasspathMessage,
+  isAdditionalClasspathConfigured,
+} from './additionalClasspath';
 import { isAntBuildFile, parsePathIds } from './ant';
 import { AntBuildProvider, BuildFileItem, TargetItem } from './antBuildProvider';
 import { generateClasspath } from './classpathGenerator';
@@ -7,6 +13,7 @@ import { isRunning, runTarget, stopTarget } from './antRunner';
 
 const AUTO_GENERATE_DEBOUNCE_MS = 500;
 const ACTIVE_BUILD_FILE_KEY = 'antWorkbench.activeBuildFile';
+const BROWSE_ITEM = '$(folder-opened) Browse for folder...';
 
 export function activate(context: vscode.ExtensionContext): void {
   const output = vscode.window.createOutputChannel('Ant Workbench');
@@ -72,24 +79,7 @@ export function activate(context: vscode.ExtensionContext): void {
           return;
         }
 
-        const bytes = await vscode.workspace.fs.readFile(uri);
-        const xml = Buffer.from(bytes).toString('utf8');
-        const allPathIds = parsePathIds(xml);
-        const primaryPathId = vscode.workspace
-          .getConfiguration('antWorkbench')
-          .get<string>('classpathPathId', 'classpath');
-        const candidates = allPathIds.filter((id) => id !== primaryPathId);
-
-        if (candidates.length === 0) {
-          vscode.window.showInformationMessage(
-            'Ant Workbench: no additional <path> elements found in this build file.'
-          );
-          return;
-        }
-
-        const pathId = await vscode.window.showQuickPick(candidates, {
-          placeHolder: 'Select the Ant <path> id for the additional classpath',
-        });
+        const pathId = await pickAdditionalPathId(uri);
         if (!pathId) {
           return;
         }
@@ -100,56 +90,14 @@ export function activate(context: vscode.ExtensionContext): void {
           return;
         }
 
-        const BROWSE_ITEM = '$(folder-opened) Browse for folder...';
-        const entries = await vscode.workspace.fs.readDirectory(wsFolder.uri);
-        const subdirs = entries
-          .filter(([, type]) => type === vscode.FileType.Directory)
-          .map(([name]) => name)
-          .filter((name) => !name.startsWith('.'))
-          .sort((a, b) => a.localeCompare(b));
-
-        const picked = await vscode.window.showQuickPick([...subdirs, BROWSE_ITEM], {
-          placeHolder: 'Select output directory for .classpath',
-        });
-        if (!picked) {
+        const subdirs = await listWorkspaceSubdirs(wsFolder);
+        const outputDir = await pickOutputDir(wsFolder, subdirs);
+        if (!outputDir) {
           return;
         }
 
-        let outputDir: string;
-        if (picked === BROWSE_ITEM) {
-          const dirs = await vscode.window.showOpenDialog({
-            canSelectFiles: false,
-            canSelectFolders: true,
-            canSelectMany: false,
-            openLabel: 'Select output directory for .classpath',
-          });
-          if (!dirs || dirs.length === 0) {
-            return;
-          }
-          outputDir = path.relative(wsFolder.uri.fsPath, dirs[0].fsPath).replaceAll('\\', '/');
-        } else {
-          outputDir = picked;
-        }
-
-        const config = vscode.workspace.getConfiguration('antWorkbench');
-        const existing = config.get<Array<{ pathId: string; outputDir: string }>>(
-          'additionalClasspaths',
-          []
-        );
-        if (existing.some((e) => e.pathId === pathId && e.outputDir === outputDir)) {
-          vscode.window.showInformationMessage(
-            `Ant Workbench: pathId="${pathId}" → "${outputDir}" is already configured.`
-          );
-          return;
-        }
-        await config.update(
-          'additionalClasspaths',
-          [...existing, { pathId, outputDir }],
-          vscode.ConfigurationTarget.Workspace
-        );
-        vscode.window.showInformationMessage(
-          `Ant Workbench: added classpath target - pathId="${pathId}", outputDir="${outputDir}".`
-        );
+        const projectDeps = await pickProjectDeps(subdirs, outputDir);
+        await saveAdditionalClasspath(pathId, outputDir, projectDeps);
       }
     ),
     vscode.commands.registerCommand('antWorkbench.toggleAutoGenerate', async () => {
@@ -229,4 +177,96 @@ async function pickBuildFile(provider: AntBuildProvider): Promise<vscode.Uri | u
     { placeHolder: 'Select an Ant build file' }
   );
   return picked?.uri;
+}
+
+async function pickAdditionalPathId(uri: vscode.Uri): Promise<string | undefined> {
+  const bytes = await vscode.workspace.fs.readFile(uri);
+  const xml = Buffer.from(bytes).toString('utf8');
+  const allPathIds = parsePathIds(xml);
+  const primaryPathId = vscode.workspace
+    .getConfiguration('antWorkbench')
+    .get<string>('classpathPathId', 'classpath');
+  const candidates = allPathIds.filter((id) => id !== primaryPathId);
+
+  if (candidates.length === 0) {
+    vscode.window.showInformationMessage(
+      'Ant Workbench: no additional <path> elements found in this build file.'
+    );
+    return undefined;
+  }
+  return vscode.window.showQuickPick(candidates, {
+    placeHolder: 'Select the Ant <path> id for the additional classpath',
+  });
+}
+
+async function listWorkspaceSubdirs(wsFolder: vscode.WorkspaceFolder): Promise<string[]> {
+  const entries = await vscode.workspace.fs.readDirectory(wsFolder.uri);
+  return entries
+    .filter(([, type]) => type === vscode.FileType.Directory)
+    .map(([name]) => name)
+    .filter((name) => !name.startsWith('.'))
+    .sort((a, b) => a.localeCompare(b));
+}
+
+async function pickOutputDir(
+  wsFolder: vscode.WorkspaceFolder,
+  subdirs: string[]
+): Promise<string | undefined> {
+  const picked = await vscode.window.showQuickPick([...subdirs, BROWSE_ITEM], {
+    placeHolder: 'Select output directory for .classpath',
+  });
+  if (!picked) {
+    return undefined;
+  }
+  if (picked !== BROWSE_ITEM) {
+    return picked;
+  }
+
+  const dirs = await vscode.window.showOpenDialog({
+    canSelectFiles: false,
+    canSelectFolders: true,
+    canSelectMany: false,
+    openLabel: 'Select output directory for .classpath',
+  });
+  if (!dirs || dirs.length === 0) {
+    return undefined;
+  }
+  return path.relative(wsFolder.uri.fsPath, dirs[0].fsPath).replaceAll('\\', '/');
+}
+
+async function pickProjectDeps(
+  subdirs: string[],
+  outputDir: string
+): Promise<string[] | undefined> {
+  const candidates = subdirs.filter((name) => name !== outputDir);
+  if (candidates.length === 0) {
+    return undefined;
+  }
+  const picked = await vscode.window.showQuickPick(candidates, {
+    placeHolder: 'Select project(s) to add as source references (Esc to skip)',
+    canPickMany: true,
+  });
+  return picked && picked.length > 0 ? picked : undefined;
+}
+
+async function saveAdditionalClasspath(
+  pathId: string,
+  outputDir: string,
+  projectDeps: string[] | undefined
+): Promise<void> {
+  const config = vscode.workspace.getConfiguration('antWorkbench');
+  const existing = config.get<AdditionalClasspath[]>('additionalClasspaths', []);
+  if (isAdditionalClasspathConfigured(existing, pathId, outputDir)) {
+    vscode.window.showInformationMessage(
+      `Ant Workbench: pathId="${pathId}" → "${outputDir}" is already configured.`
+    );
+    return;
+  }
+  const entry = buildAdditionalClasspathEntry(pathId, outputDir, projectDeps);
+  await config.update(
+    'additionalClasspaths',
+    [...existing, entry],
+    vscode.ConfigurationTarget.Workspace
+  );
+  vscode.window.showInformationMessage(formatAddClasspathMessage(pathId, outputDir, projectDeps));
 }

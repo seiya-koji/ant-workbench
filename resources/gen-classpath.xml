@@ -22,10 +22,15 @@
     <!-- Output path; overridable via -Dawb.output for non-destructive checks. -->
     <property name="awb.output" location="${dir.base}/.classpath" />
 
-    <pathconvert property="awb.entries" pathsep="${line.separator}" refid="${awb.path.id}">
-      <mapper type="regexp"
-              from="^${awb.parent}/(.*)$$"
-              to="&#9;&lt;classpathentry kind=&quot;lib&quot; path=&quot;../\1&quot;/&gt;" />
+    <!-- A glob mapper (not regexp) avoids two Windows-only problems: (1) ${awb.parent}
+         resolves with backslashes, which a regexp `from` pattern would treat as illegal
+         escape sequences, and (2) library directory names containing regexp metacharacters
+         (e.g. "Program Files (x86)") would otherwise need escaping. `dirsep="/"` normalizes
+         the mapped output to forward slashes for the generated .classpath. -->
+    <pathconvert property="awb.entries" pathsep="${line.separator}" dirsep="/" refid="${awb.path.id}">
+      <mapper type="glob"
+              from="${awb.parent}${file.separator}*"
+              to="&#9;&lt;classpathentry kind=&quot;lib&quot; path=&quot;../*&quot;/&gt;" />
     </pathconvert>
 
     <echo file="${awb.output}"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
