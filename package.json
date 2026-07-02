@@ -49,6 +49,18 @@
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "antWorkbench.builds",
+        "when": "workspaceFolderCount == 0",
+        "contents": "No folder is open.\n[Open Folder](command:vscode.openFolder)"
+      },
+      {
+        "view": "antWorkbench.builds",
+        "when": "workspaceFolderCount != 0 && !antWorkbench.hasBuildFiles",
+        "contents": "No Ant build files found in this workspace.\nAnt Workbench looks for files matching `**/build*.xml` (see the `antWorkbench.buildFileGlob` setting)."
+      }
+    ],
     "commands": [
       {
         "command": "antWorkbench.refresh",
