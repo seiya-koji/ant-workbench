@@ -98,6 +98,11 @@ export class AntBuildProvider implements vscode.TreeDataProvider<AntNode>, vscod
 
   private async findBuildFiles(): Promise<BuildFileItem[]> {
     const uris = await this.getBuildFileUris();
+    await vscode.commands.executeCommand(
+      'setContext',
+      'antWorkbench.hasBuildFiles',
+      uris.length > 0
+    );
     return uris.map((uri) => new BuildFileItem(uri, uri.fsPath === this.activeBuildFile));
   }
 
