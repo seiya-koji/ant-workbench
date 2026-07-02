@@ -3,6 +3,7 @@
 [![VS Marketplace Version](https://badgen.net/vs-marketplace/v/seiya-koji.ant-workbench?label=version)](https://marketplace.visualstudio.com/items?itemName=seiya-koji.ant-workbench)
 [![VS Marketplace Installs](https://badgen.net/vs-marketplace/i/seiya-koji.ant-workbench?label=installs)](https://marketplace.visualstudio.com/items?itemName=seiya-koji.ant-workbench)
 [![VS Marketplace Rating](https://badgen.net/vs-marketplace/rating/seiya-koji.ant-workbench?label=rating)](https://marketplace.visualstudio.com/items?itemName=seiya-koji.ant-workbench)
+[![Open VSX Version](https://img.shields.io/open-vsx/v/seiya-koji/ant-workbench?label=open%20vsx)](https://open-vsx.org/extension/seiya-koji/ant-workbench)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Browse Ant build files from a dedicated sidebar and run their targets directly from VS Code. For Java projects, it can also generate Eclipse `.classpath` files so the Java language server (`eclipse.jdt.ls`) resolves the same classpath that Ant compiles with.
